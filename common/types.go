@@ -27,6 +27,11 @@ func RegisterAccount(f1 func([]byte) Account, f2 func(string) Account) {
 
 type SafeUint256 big.Int
 
+func NewSafeUint256(i uint64) *SafeUint256 {
+	z := big.NewInt(int64(i))
+	return (*SafeUint256)(z)
+}
+
 var (
 	// SafeUintOne is 1
 	SafeUintOne    = (*SafeUint256)(big.NewInt(1))

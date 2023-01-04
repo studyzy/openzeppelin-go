@@ -41,7 +41,9 @@ func checkAccount(option Option, acct ...common.Account) error {
 	}
 	return nil
 }
-
+func (c *ERC20Contract) SetSDK(sdk common.ContractSDK) {
+	c.sdk = sdk
+}
 func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amount *common.SafeUint256, option Option) error {
 	//检查from和to的合法性
 	err := checkAccount(option, from, to)
