@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/studyzy/token-go/common"
+	"github.com/studyzy/openzeppelin-go/common"
 )
 
 var _ IERC20 = (*ERC20Contract)(nil)

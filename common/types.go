@@ -8,21 +8,7 @@ type Account interface {
 	ToString() string
 	Bytes() []byte
 	Equal(Account) bool
-}
-
-func NewAccountFromBytes(b []byte) Account {
-	return accountFromBytes(b)
-}
-func NewAccountFromString(str string) Account {
-	return accountFromString(str)
-}
-
-var accountFromBytes func([]byte) Account
-var accountFromString func(string) Account
-
-func RegisterAccount(f1 func([]byte) Account, f2 func(string) Account) {
-	accountFromBytes = f1
-	accountFromString = f2
+	IsZero() bool
 }
 
 type SafeUint256 big.Int
@@ -103,6 +89,11 @@ func SafeDiv(x, y *SafeUint256) *SafeUint256 {
 	return (*SafeUint256)((*big.Int)(x).Div((*big.Int)(x), (*big.Int)(y)))
 }
 
+type KeyValue struct {
+	Key   string
+	Value []byte
+}
+
 type Response struct {
 	// A status code that should follow the HTTP status codes.
 	Status int32
@@ -121,18 +112,18 @@ const (
 	ERROR = 1
 )
 
-// Success ...
-func Success(payload []byte) Response {
-	return Response{
-		Status:  OK,
-		Payload: payload,
-	}
-}
-
-// Error ...
-func Error(msg string) Response {
-	return Response{
-		Status:  ERROR,
-		Message: msg,
-	}
-}
+//// Success ...
+//func Success(payload []byte) Response {
+//	return Response{
+//		Status:  OK,
+//		Payload: payload,
+//	}
+//}
+//
+//// Error ...
+//func Error(msg string) Response {
+//	return Response{
+//		Status:  ERROR,
+//		Message: msg,
+//	}
+//}

@@ -3,17 +3,11 @@ package erc20
 import (
 	"errors"
 
-	"github.com/studyzy/token-go/common"
+	"github.com/studyzy/openzeppelin-go/common"
 )
 
 // Option 初始化ERC20合约的选项
 type Option struct {
-	// IsZeroAccount 判断一个账户是否为空
-	IsZeroAccount func(account common.Account) bool
-	// GetZeroAccount 获得一个空账户
-	GetZeroAccount func() common.Account
-	// IsValidAccount 判断一个账号是否有效
-	IsValidAccount func(account common.Account) bool
 	// BeforeTransfer 在转账前执行的逻辑
 	BeforeTransfer func(from common.Account, to common.Account, amount *common.SafeUint256) error
 	// AfterTransfer 在转账成功后执行的逻辑
@@ -24,19 +18,10 @@ type Option struct {
 	Minable bool
 }
 
-func checkAccount(option Option, acct ...common.Account) error {
-	if option.IsValidAccount != nil {
-		for _, acc := range acct {
-			if !option.IsValidAccount(acc) {
-				return errors.New("invalid account")
-			}
-		}
-	}
-	if option.IsZeroAccount != nil {
-		for _, acc := range acct {
-			if option.IsZeroAccount(acc) {
-				return errors.New(" the zero address")
-			}
+func checkAccount(acct ...common.Account) error {
+	for _, acc := range acct {
+		if acc.IsZero() {
+			return errors.New(" the zero address")
 		}
 	}
 	return nil
@@ -46,7 +31,7 @@ func (c *ERC20Contract) SetSDK(sdk common.ContractSDK) {
 }
 func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amount *common.SafeUint256, option Option) error {
 	//检查from和to的合法性
-	err := checkAccount(option, from, to)
+	err := checkAccount(from, to)
 	if err != nil {
 		return err
 	}
@@ -94,7 +79,7 @@ func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amo
 
 func (c *ERC20Contract) baseApprove(owner common.Account, spender common.Account, amount *common.SafeUint256, option Option) error {
 	//检查from和to的合法性
-	err := checkAccount(option, owner, spender)
+	err := checkAccount(owner, spender)
 	if err != nil {
 		return err
 	}
@@ -127,14 +112,12 @@ func (c *ERC20Contract) baseSpendAllowance(owner common.Account, spender common.
 }
 func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint256, option Option) error {
 	//检查account的合法性
-	err := checkAccount(option, account)
+	err := checkAccount(account)
 	if err != nil {
 		return err
 	}
-	var from common.Account
-	if option.GetZeroAccount != nil {
-		from = option.GetZeroAccount()
-	}
+	from := c.sdk.NewZeroAccount()
+
 	//触发用户自定义的BeforeTransfer
 	if option.BeforeTransfer != nil {
 		if err = option.BeforeTransfer(from, account, amount); err != nil {
@@ -178,14 +161,11 @@ func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint
 
 func (c *ERC20Contract) baseBurn(account common.Account, amount *common.SafeUint256, option Option) error {
 	//检查account的合法性
-	err := checkAccount(option, account)
+	err := checkAccount(account)
 	if err != nil {
 		return err
 	}
-	var to common.Account
-	if option.GetZeroAccount != nil {
-		to = option.GetZeroAccount()
-	}
+	to := c.sdk.NewZeroAccount()
 	//触发用户自定义的BeforeTransfer
 	if option.BeforeTransfer != nil {
 		if err = option.BeforeTransfer(account, to, amount); err != nil {

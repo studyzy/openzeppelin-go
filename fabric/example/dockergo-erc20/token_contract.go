@@ -1,21 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/studyzy/token-go/common"
-	"github.com/studyzy/token-go/erc20"
-	"github.com/studyzy/token-go/fabric"
+	"github.com/studyzy/openzeppelin-go/common"
+	"github.com/studyzy/openzeppelin-go/erc20"
+	"github.com/studyzy/openzeppelin-go/fabric"
 )
-
-// Define key names for options
-const totalSupplyKey = "totalSupply"
-
-// Define objectType names for prefix
-const allowancePrefix = "allowance"
 
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
@@ -24,16 +19,44 @@ type SmartContract struct {
 }
 
 // event provides an organized struct for emitting events
-type event struct {
+type transfer struct {
 	from  string
 	to    string
 	value int
+}
+type approval struct {
+	owner   string
+	spender string
+	value   int
+}
+
+func encodeEvent(topic string, data ...string) ([]byte, error) {
+	var payload []byte
+	var err error
+	if topic == "transfer" {
+		val, _ := strconv.Atoi(data[2])
+		transferEvent := transfer{data[0], data[1], val}
+		payload, _ = json.Marshal(transferEvent)
+	} else if topic == "approve" {
+		val, _ := strconv.Atoi(data[2])
+		approvalEvent := approval{data[0], data[1], val}
+		payload, _ = json.Marshal(approvalEvent)
+	} else {
+		payload, err = json.Marshal(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return payload, err
 }
 
 // Mint creates new tokens and adds them to minter's account balance
 // This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, recipient string, amount int) error {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	//TODO check recipient is valid
 	account := fabric.NewMspUser(recipient)
 	if amount <= 0 {
@@ -53,7 +76,10 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, recipi
 // Burn redeems tokens the minter's account balance
 // This function triggers a Transfer event
 func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount int) error {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	if amount <= 0 {
 		return fmt.Errorf("mint amount must be a positive integer")
 	}
@@ -72,7 +98,10 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 // recipient account must be a valid clientID as returned by the ClientID() function
 // This function triggers a Transfer event
 func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, recipient string, amount int) error {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	//TODO check recipient is valid
 	account := fabric.NewMspUser(recipient)
 	if amount <= 0 {
@@ -114,7 +143,10 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 
 // BalanceOf returns the balance of the given account
 func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, account string) (int, error) {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	acc := fabric.NewMspUser(account)
 	bal, err := s.erc20Contract.BalanceOf(acc)
 	if err != nil {
@@ -150,7 +182,10 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 
 // TotalSupply returns the total token supply
 func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface) (int, error) {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	num, err := s.erc20Contract.TotalSupply()
 	if err != nil {
 		return 0, err
@@ -162,7 +197,10 @@ func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface)
 // The spender can withdraw multiple times if necessary, up to the value amount
 // This function triggers an Approval event
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spender string, value int) error {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	//TODO check recipient is valid
 	account := fabric.NewMspUser(spender)
 	if value <= 0 {
@@ -181,7 +219,10 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 
 // Allowance returns the amount still available for the spender to withdraw from the owner
 func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, owner string, spender string) (int, error) {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	//TODO check recipient is valid
 	spenderAcc := fabric.NewMspUser(spender)
 	ownerAcc := fabric.NewMspUser(owner)
@@ -195,7 +236,10 @@ func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, o
 // TransferFrom transfers the value amount from the "from" address to the "to" address
 // This function triggers a Transfer event
 func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
-	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx))
+	s.erc20Contract.SetSDK(fabric.NewSDkAdapter(ctx, encodeEvent, func(contractName string) (bool, error) {
+		//TODO
+		return false, nil
+	}))
 	//TODO check recipient is valid
 	fromAcc := fabric.NewMspUser(from)
 	toAcc := fabric.NewMspUser(to)

@@ -1,7 +1,7 @@
 package erc20
 
 import (
-	"github.com/studyzy/token-go/common"
+	"github.com/studyzy/openzeppelin-go/common"
 )
 
 type IERC20 interface {

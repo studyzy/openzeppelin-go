@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/studyzy/token-go/common"
+	"github.com/studyzy/openzeppelin-go/common"
 )
 
 const (
@@ -87,7 +87,7 @@ func (c *ERC20ContractDAL) GetAdmin() (common.Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	return common.NewAccountFromBytes(b), nil
+	return c.sdk.NewAccountFromBytes(b)
 }
 func (c *ERC20ContractDAL) SetAdmin(admin common.Account) error {
 	return c.sdk.PutState(adminKey, admin.Bytes())
