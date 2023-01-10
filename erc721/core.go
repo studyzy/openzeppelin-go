@@ -8,12 +8,6 @@ import (
 
 // Option 初始化ERC20合约的选项
 type Option struct {
-	// IsZeroAccount 判断一个账户是否为空
-	IsZeroAccount func(account common.Account) bool
-	// GetZeroAccount 获得一个空账户
-	GetZeroAccount func() common.Account
-	// IsValidAccount 判断一个账号是否有效
-	IsValidAccount func(account common.Account) bool
 	// BeforeTransfer 在转账前执行的逻辑
 	BeforeTransfer func(from common.Account, to common.Account, tokenId *common.SafeUint256) error
 	// AfterTransfer 在转账成功后执行的逻辑
@@ -87,17 +81,18 @@ func (c *ERC721Contract) baseMint(to common.Account, tokenId *common.SafeUint256
 	if err := common.Require(!c.exists(tokenId), "ERC721: token already minted"); err != nil {
 		return err
 	}
+	from := c.sdk.NewZeroAccount()
 	if c.option.BeforeTransfer != nil {
-		c.option.BeforeTransfer(c.option.GetZeroAccount(), to, tokenId)
+		c.option.BeforeTransfer(from, to, tokenId)
 	}
 	c.dal.IncreaseBalance(to)
 	//_balances[to] += 1;
 	c.dal.SetTokenOwner(tokenId, to)
 	//_owners[tokenId] = to;
-	c.sdk.EmitEvent("transfer", c.option.GetZeroAccount().ToString(), to.ToString(), tokenId.ToString())
+	c.sdk.EmitEvent("transfer", from.ToString(), to.ToString(), tokenId.ToString())
 	//emit Transfer(address(0), to, tokenId);
 	if c.option.AfterTransfer != nil {
-		c.option.AfterTransfer(c.option.GetZeroAccount(), to, tokenId)
+		c.option.AfterTransfer(from, to, tokenId)
 		//_afterTokenTransfer(address(0), to, tokenId);
 	}
 	return nil
@@ -119,15 +114,15 @@ func (c *ERC721Contract) baseBurn(tokenId *common.SafeUint256) error {
 	if err != nil {
 		return err
 	}
-	//_beforeTokenTransfer(owner, address(0), tokenId);
+	to := c.sdk.NewZeroAccount()
 	if c.option.BeforeTransfer != nil {
-		if err = c.option.BeforeTransfer(owner, c.option.GetZeroAccount(), tokenId); err != nil {
+		if err = c.option.BeforeTransfer(owner, to, tokenId); err != nil {
 			return err
 		}
 	}
 	// Clear approvals
 	//_approve(address(0), tokenId)
-	err = c.baseApprove(c.option.GetZeroAccount(), tokenId)
+	err = c.baseApprove(to, tokenId)
 	if err != nil {
 		return err
 	}
@@ -142,12 +137,12 @@ func (c *ERC721Contract) baseBurn(tokenId *common.SafeUint256) error {
 		return err
 	}
 	//emit Transfer(owner, address(0), tokenId);
-	err = c.sdk.EmitEvent("transfer", owner.ToString(), c.option.GetZeroAccount().ToString(), tokenId.ToString())
+	err = c.sdk.EmitEvent("transfer", owner.ToString(), to.ToString(), tokenId.ToString())
 	if err != nil {
 		return err
 	}
 	if c.option.AfterTransfer != nil {
-		err = c.option.AfterTransfer(owner, c.option.GetZeroAccount(), tokenId)
+		err = c.option.AfterTransfer(owner, to, tokenId)
 		if err != nil {
 			return err
 		}
@@ -180,7 +175,7 @@ func (c *ERC721Contract) baseApprove(to common.Account, tokenId *common.SafeUint
  *
  * Emits an {ApprovalForAll} event.
  */
-func (c *ERC721Contract) baseetApprovalForAll(owner, operator common.Account, approved bool) error {
+func (c *ERC721Contract) baseSetApprovalForAll(owner, operator common.Account, approved bool) error {
 	//require(owner != operator, "ERC721: approve to caller");
 	err := common.Require(owner != operator, "ERC721: approve to caller")
 	if err != nil {
