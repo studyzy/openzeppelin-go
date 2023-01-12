@@ -146,3 +146,10 @@ type IERC721 interface {
 	 */
 	TokenURI(tokenId *common.SafeUint256) (string, error)
 }
+
+type Mintable interface {
+	Mint(account common.Account, tokenId *common.SafeUint256) (bool, error)
+}
+type Burnable interface {
+	Burn(tokenId *common.SafeUint256) (bool, error)
+}

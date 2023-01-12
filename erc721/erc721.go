@@ -15,6 +15,7 @@
 package erc721
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/studyzy/openzeppelin-go/common"
@@ -160,4 +161,43 @@ func (c *ERC721Contract) TokenURI(tokenId *common.SafeUint256) (string, error) {
 		return fmt.Sprintf(baseURI, tokenId.ToString()), nil
 	}
 	return "", nil
+}
+
+func (c *ERC721Contract) Mint(account common.Account, tokenId *common.SafeUint256) (bool, error) {
+
+	//check is admin
+	sender, err := c.sdk.GetTxSender()
+	if err != nil {
+		return false, fmt.Errorf("Get sender address failed, err:%s", err)
+	}
+
+	admin, err := c.dal.GetAdmin()
+	if err != nil {
+		return false, err
+	}
+	if !sender.Equal(admin) {
+		return false, errors.New("only admin can mint tokens")
+	}
+	//call base mint
+	err = c.baseMint(account, tokenId)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (c *ERC721Contract) Burn(tokenId *common.SafeUint256) error {
+	sender, err := c.sdk.GetTxSender()
+	if err != nil {
+		return err
+	}
+	_isApprovedOrOwner, err := c.baseIsApprovedOrOwner(sender, tokenId)
+	if err != nil {
+		return err
+	}
+	err = common.Require(_isApprovedOrOwner, "ERC721: caller is not token owner or approved")
+	if err != nil {
+		return err
+	}
+	return c.baseBurn(tokenId)
 }

@@ -32,6 +32,10 @@ type Option struct {
 	Minable bool
 }
 
+func (c *ERC721Contract) SetSDK(sdk common.ContractSDK) {
+	c.sdk = sdk
+}
+
 /**
  * @dev Transfers `tokenId` from `from` to `to`.
  *  As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
