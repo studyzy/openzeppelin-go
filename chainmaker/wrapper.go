@@ -84,3 +84,16 @@ func ReturnJson(obj interface{}, err error) protogo.Response {
 	}
 	return sdk.Success(data)
 }
+
+func ReturnAccount(acc common.Account, err error) protogo.Response {
+	if err != nil {
+		return sdk.Error(err.Error())
+	}
+	return sdk.Success([]byte(acc.ToString()))
+}
+func Return(err error) protogo.Response {
+	if err != nil {
+		return sdk.Error(err.Error())
+	}
+	return sdk.SuccessResponse
+}

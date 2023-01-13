@@ -31,6 +31,41 @@ type ERC721Contract struct {
 	sdk     common.ContractSDK
 }
 
+func NewERC721Contract(option Option, name, symbol string, sdk common.ContractSDK) *ERC721Contract {
+	erc721 := &ERC721Contract{
+		option:  option,
+		_name:   name,
+		_symbol: symbol,
+		sdk:     sdk,
+		dal:     NewERC20ContractDAL(sdk),
+	}
+	return erc721
+}
+
+func (c *ERC721Contract) InitERC721(name, symbol string, admin common.Account) error {
+
+	//此处支持在安装合约的时候指定name,symbol
+	//如果没有参数指定，那么就使用NewERC20Contract构造的时候的值
+	if len(name) > 0 {
+		c._name = name
+	}
+	if err := c.dal.SetName(c._name); err != nil {
+		return err
+	}
+	if len(symbol) > 0 {
+		c._symbol = symbol
+
+	}
+	if err := c.dal.SetSymbol(c._symbol); err != nil {
+		return err
+	}
+
+	//set Admin，方便后面mint的时候判断权限
+	if err := c.dal.SetAdmin(admin); err != nil {
+		return fmt.Errorf("set admin failed, err:%s", err)
+	}
+	return nil
+}
 func (c *ERC721Contract) BalanceOf(owner common.Account) (*common.SafeUint256, error) {
 	err := common.Require(!owner.IsZero(), "ERC721: address zero is not a valid owner")
 	if err != nil {
@@ -163,27 +198,24 @@ func (c *ERC721Contract) TokenURI(tokenId *common.SafeUint256) (string, error) {
 	return "", nil
 }
 
-func (c *ERC721Contract) Mint(account common.Account, tokenId *common.SafeUint256) (bool, error) {
+func (c *ERC721Contract) Mint(to common.Account, tokenId *common.SafeUint256) error {
 
 	//check is admin
 	sender, err := c.sdk.GetTxSender()
 	if err != nil {
-		return false, fmt.Errorf("Get sender address failed, err:%s", err)
+		return fmt.Errorf("Get sender address failed, err:%s", err)
 	}
 
 	admin, err := c.dal.GetAdmin()
 	if err != nil {
-		return false, err
+		return err
 	}
 	if !sender.Equal(admin) {
-		return false, errors.New("only admin can mint tokens")
+		return errors.New("only admin can mint tokens")
 	}
 	//call base mint
-	err = c.baseMint(account, tokenId)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return c.baseMint(to, tokenId)
+
 }
 
 func (c *ERC721Contract) Burn(tokenId *common.SafeUint256) error {

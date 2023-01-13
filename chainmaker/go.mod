@@ -3,7 +3,7 @@ module github.com/studyzy/openzeppelin-go/chainmaker
 go 1.18
 
 require (
-	chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.2
+	chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.3-0.20230112114602-93f6adab4548
 	chainmaker.org/chainmaker/contract-utils v1.0.0
 	github.com/studyzy/openzeppelin-go v0.0.0-20230104174003-39bfdffbcb48
 )

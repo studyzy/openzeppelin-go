@@ -1,7 +1,7 @@
 chainmaker.org/chainmaker/common/v2 v2.3.0 h1:ZjJrDnHGQUSdCI7154zAiBAiLlmLkd+DroQ0NUpRd5o=
 chainmaker.org/chainmaker/common/v2 v2.3.0/go.mod h1:LV6bEVvqWBa6NY/QyNY9CDIdah44Hpd/aEqWkG5rXws=
-chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.2 h1:eyiiWo42pbjtwSLyP80VCIxRt5go1CawL0VTtdRlblw=
-chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.2/go.mod h1:27Kc3H4OKiVP73PgJNBwwYoKaEM3XJ8livlS4H8Btsk=
+chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.3-0.20230112114602-93f6adab4548 h1:SzmOPe4Rw/YbsCIi2JkR+cdCM/ySb6B5UDMgrEo0GGk=
+chainmaker.org/chainmaker/contract-sdk-go/v2 v2.3.3-0.20230112114602-93f6adab4548/go.mod h1:27Kc3H4OKiVP73PgJNBwwYoKaEM3XJ8livlS4H8Btsk=
 chainmaker.org/chainmaker/contract-utils v1.0.0 h1:+kx3u2SFaiTS5c29Y6UqQ665olTMJmOt3l38yRUFS7U=
 chainmaker.org/chainmaker/contract-utils v1.0.0/go.mod h1:cRJUt4Y0E91uKcpxbeuSllFhi+61njM2YGtHIa8vx1c=
 chainmaker.org/chainmaker/pb-go/v2 v2.3.0 h1:GcFY14KFGDnDlWw07VWL9Ew5XqUBkbcjm7IHtMgmF2s=
