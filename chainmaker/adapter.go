@@ -76,12 +76,11 @@ func args2Map(args []common.KeyValue) map[string][]byte {
 }
 
 func (s SdkAdapter) GetState(key string) (value []byte, err error) {
-	str, err := s.cmsdk.GetState(key, "")
-	return []byte(str), err
+	return s.cmsdk.GetStateFromKeyByte(key)
 }
 
 func (s SdkAdapter) PutState(key string, value []byte) error {
-	return s.cmsdk.PutState(key, "", string(value))
+	return s.cmsdk.PutStateFromKeyByte(key, value)
 }
 
 func (s SdkAdapter) GetTxSender() (common.Account, error) {

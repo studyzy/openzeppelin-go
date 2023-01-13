@@ -58,10 +58,12 @@ func (c *ERC20ContractDAL) SetBalance(account common.Account, amount *common.Saf
 	return c.sdk.PutState(balanceKey+account.ToString(), []byte(amount.ToString()))
 }
 func (c *ERC20ContractDAL) SetAllowance(owner common.Account, spender common.Account, amount *common.SafeUint256) error {
-	return c.sdk.PutState(allowanceKey+"#"+owner.ToString()+"#"+spender.ToString(), []byte(amount.ToString()))
+	key, _ := c.sdk.CreateCompositeKey(allowanceKey, owner.ToString(), spender.ToString())
+	return c.sdk.PutState(key, []byte(amount.ToString()))
 }
 func (c *ERC20ContractDAL) GetAllowance(owner common.Account, spender common.Account) (*common.SafeUint256, error) {
-	return c.GetUint256(allowanceKey + "#" + owner.ToString() + "#" + spender.ToString())
+	key, _ := c.sdk.CreateCompositeKey(allowanceKey, owner.ToString(), spender.ToString())
+	return c.GetUint256(key)
 }
 func (c *ERC20ContractDAL) GetTotalSupply() (*common.SafeUint256, error) {
 	return c.GetUint256(totalSupplyKey)

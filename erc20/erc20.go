@@ -100,7 +100,7 @@ func (c *ERC20Contract) Transfer(to common.Account, amount *common.SafeUint256) 
 		return false, fmt.Errorf("Get sender address failed, err:%s", err)
 	}
 
-	err = c.baseTransfer(from, to, amount, c.option)
+	err = c.baseTransfer(from, to, amount)
 	if err != nil {
 		return false, err
 	}
@@ -130,11 +130,11 @@ func (c *ERC20Contract) TransferFrom(from, to common.Account, amount *common.Saf
 		return false, fmt.Errorf("Get sender address failed, err:%s", err)
 	}
 
-	err = c.baseSpendAllowance(from, sender, amount, c.option)
+	err = c.baseSpendAllowance(from, sender, amount)
 	if err != nil {
 		return false, fmt.Errorf("spend allowance failed, err:%s", err)
 	}
-	err = c.baseTransfer(from, to, amount, c.option)
+	err = c.baseTransfer(from, to, amount)
 	if err != nil {
 		return false, err
 	}
@@ -157,7 +157,7 @@ func (c *ERC20Contract) Approve(spender common.Account, amount *common.SafeUint2
 		return false, fmt.Errorf("Get sender address failed, err:%s", err)
 	}
 
-	err = c.baseApprove(sender, spender, amount, c.option)
+	err = c.baseApprove(sender, spender, amount)
 	if err != nil {
 		return false, err
 	}
@@ -204,7 +204,7 @@ func (c *ERC20Contract) Mint(account common.Account, amount *common.SafeUint256)
 		return false, errors.New("only admin can mint tokens")
 	}
 	//call base mint
-	err = c.baseMint(account, amount, c.option)
+	err = c.baseMint(account, amount)
 	if err != nil {
 		return false, err
 	}
@@ -217,7 +217,7 @@ func (c *ERC20Contract) Burn(amount *common.SafeUint256) (bool, error) {
 		return false, fmt.Errorf("Get sender address failed, err:%s", err)
 	}
 	//call base burn
-	err = c.baseBurn(spender, amount, c.option)
+	err = c.baseBurn(spender, amount)
 	if err != nil {
 		return false, err
 	}
@@ -229,12 +229,12 @@ func (c *ERC20Contract) BurnFrom(account common.Account, amount *common.SafeUint
 	if err != nil {
 		return false, fmt.Errorf("Get sender address failed, err:%s", err)
 	}
-	err = c.baseSpendAllowance(account, spender, amount, c.option)
+	err = c.baseSpendAllowance(account, spender, amount)
 	if err != nil {
 		return false, err
 	}
 	//call base burn
-	err = c.baseBurn(account, amount, c.option)
+	err = c.baseBurn(account, amount)
 	if err != nil {
 		return false, err
 	}

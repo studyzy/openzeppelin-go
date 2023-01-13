@@ -28,21 +28,25 @@ type Account interface {
 type SafeUint256 big.Int
 
 func NewSafeUint256(i uint64) *SafeUint256 {
-	z := big.NewInt(int64(i))
+	z := big.NewInt(0)
+	z.SetUint64(i)
 	return (*SafeUint256)(z)
 }
 
 var (
 	// SafeUintOne is 1
-	SafeUintOne    = (*SafeUint256)(big.NewInt(1))
-	maxSafeUint256 *SafeUint256
+	SafeUintOne = (*SafeUint256)(big.NewInt(1))
+	//  SafeUintZero is 0
+	SafeUintZero = (*SafeUint256)(big.NewInt(0))
+	//  MaxSafeUint256  max uint256
+	MaxSafeUint256 *SafeUint256
 	minSafeUint256 *SafeUint256
 )
 
 func init() {
 	x := big.NewInt(1)
 	x = x.Lsh(x, 256).Sub(x, big.NewInt(1))
-	maxSafeUint256 = (*SafeUint256)(x)
+	MaxSafeUint256 = (*SafeUint256)(x)
 	minSafeUint256 = (*SafeUint256)(big.NewInt(0))
 }
 
@@ -56,6 +60,13 @@ func (x *SafeUint256) GTE(y *SafeUint256) bool {
 	return (*big.Int)(x).Cmp((*big.Int)(y)) >= 0
 }
 
+// Equal  if x==y return true
+// @param y
+// @return bool
+func (x *SafeUint256) Equal(y *SafeUint256) bool {
+	return (*big.Int)(x).Cmp((*big.Int)(y)) == 0
+}
+
 // ParseSafeUint256 get uint256 obj from str
 func ParseSafeUint256(x string) (*SafeUint256, bool) {
 	z := big.NewInt(0)
@@ -63,7 +74,7 @@ func ParseSafeUint256(x string) (*SafeUint256, bool) {
 		return (*SafeUint256)(z), true
 	}
 	z, ok := z.SetString(x, 10)
-	if !ok || z.Cmp((*big.Int)(maxSafeUint256)) > 0 || z.Cmp((*big.Int)(minSafeUint256)) < 0 {
+	if !ok || z.Cmp((*big.Int)(MaxSafeUint256)) > 0 || z.Cmp((*big.Int)(minSafeUint256)) < 0 {
 		return nil, false
 	}
 	return (*SafeUint256)(z), true
@@ -73,7 +84,7 @@ func ParseSafeUint256(x string) (*SafeUint256, bool) {
 func SafeAdd(x, y *SafeUint256) (*SafeUint256, bool) {
 	z := big.NewInt(0)
 	z = z.Add((*big.Int)(x), (*big.Int)(y))
-	if z.Cmp((*big.Int)(maxSafeUint256)) > 0 {
+	if z.Cmp((*big.Int)(MaxSafeUint256)) > 0 {
 		return nil, false
 	}
 	return (*SafeUint256)(z), true
@@ -90,7 +101,7 @@ func SafeSub(x, y *SafeUint256) (*SafeUint256, bool) {
 // SafeMul sets z to the product x*y and returns z.
 func SafeMul(x, y *SafeUint256) (*SafeUint256, bool) {
 	z := (*big.Int)(x).Mul((*big.Int)(x), (*big.Int)(y))
-	if z.Cmp((*big.Int)(maxSafeUint256)) > 0 || z.Cmp((*big.Int)(minSafeUint256)) < 0 {
+	if z.Cmp((*big.Int)(MaxSafeUint256)) > 0 || z.Cmp((*big.Int)(minSafeUint256)) < 0 {
 		return nil, false
 	}
 	return (*SafeUint256)(z), true

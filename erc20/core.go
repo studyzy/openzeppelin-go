@@ -43,15 +43,15 @@ func checkAccount(acct ...common.Account) error {
 func (c *ERC20Contract) SetSDK(sdk common.ContractSDK) {
 	c.sdk = sdk
 }
-func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amount *common.SafeUint256, option Option) error {
+func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amount *common.SafeUint256) error {
 	//检查from和to的合法性
 	err := checkAccount(from, to)
 	if err != nil {
 		return err
 	}
 	//触发用户自定义的BeforeTransfer
-	if option.BeforeTransfer != nil {
-		if err = option.BeforeTransfer(from, to, amount); err != nil {
+	if c.option.BeforeTransfer != nil {
+		if err = c.option.BeforeTransfer(from, to, amount); err != nil {
 			return err
 		}
 	}
@@ -85,13 +85,13 @@ func (c *ERC20Contract) baseTransfer(from common.Account, to common.Account, amo
 
 	c.sdk.EmitEvent("transfer", from.ToString(), to.ToString(), amount.ToString())
 	//触发用户自定义的afterTransfer
-	if option.AfterTransfer != nil {
-		return option.AfterTransfer(from, to, amount)
+	if c.option.AfterTransfer != nil {
+		return c.option.AfterTransfer(from, to, amount)
 	}
 	return nil
 }
 
-func (c *ERC20Contract) baseApprove(owner common.Account, spender common.Account, amount *common.SafeUint256, option Option) error {
+func (c *ERC20Contract) baseApprove(owner common.Account, spender common.Account, amount *common.SafeUint256) error {
 	//检查from和to的合法性
 	err := checkAccount(owner, spender)
 	if err != nil {
@@ -107,11 +107,15 @@ func (c *ERC20Contract) baseApprove(owner common.Account, spender common.Account
 	return nil
 }
 
-func (c *ERC20Contract) baseSpendAllowance(owner common.Account, spender common.Account, amount *common.SafeUint256, option Option) error {
+func (c *ERC20Contract) baseSpendAllowance(owner common.Account, spender common.Account, amount *common.SafeUint256) error {
 	//获得授权的额度
 	currentAllowance, err := c.dal.GetAllowance(owner, spender)
 	if err != nil {
 		return err
+	}
+	//如果授权额度是MaxUint256，则表示无限额度，不需要扣减
+	if currentAllowance.Equal(common.MaxSafeUint256) {
+		return nil
 	}
 	//计算额度是否够用
 	if !currentAllowance.GTE(amount) {
@@ -122,9 +126,9 @@ func (c *ERC20Contract) baseSpendAllowance(owner common.Account, spender common.
 	if !ok {
 		return errors.New("spend allowance error")
 	}
-	return c.baseApprove(owner, spender, newCurrentAllowance, option)
+	return c.baseApprove(owner, spender, newCurrentAllowance)
 }
-func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint256, option Option) error {
+func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint256) error {
 	//检查account的合法性
 	err := checkAccount(account)
 	if err != nil {
@@ -133,8 +137,8 @@ func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint
 	from := c.sdk.NewZeroAccount()
 
 	//触发用户自定义的BeforeTransfer
-	if option.BeforeTransfer != nil {
-		if err = option.BeforeTransfer(from, account, amount); err != nil {
+	if c.option.BeforeTransfer != nil {
+		if err = c.option.BeforeTransfer(from, account, amount); err != nil {
 			return err
 		}
 	}
@@ -167,13 +171,13 @@ func (c *ERC20Contract) baseMint(account common.Account, amount *common.SafeUint
 	//触发事件
 	c.sdk.EmitEvent("transfer", from.ToString(), account.ToString(), amount.ToString())
 	//触发用户自定义的afterTransfer
-	if option.AfterTransfer != nil {
-		return option.AfterTransfer(from, account, amount)
+	if c.option.AfterTransfer != nil {
+		return c.option.AfterTransfer(from, account, amount)
 	}
 	return nil
 }
 
-func (c *ERC20Contract) baseBurn(account common.Account, amount *common.SafeUint256, option Option) error {
+func (c *ERC20Contract) baseBurn(account common.Account, amount *common.SafeUint256) error {
 	//检查account的合法性
 	err := checkAccount(account)
 	if err != nil {
@@ -181,8 +185,8 @@ func (c *ERC20Contract) baseBurn(account common.Account, amount *common.SafeUint
 	}
 	to := c.sdk.NewZeroAccount()
 	//触发用户自定义的BeforeTransfer
-	if option.BeforeTransfer != nil {
-		if err = option.BeforeTransfer(account, to, amount); err != nil {
+	if c.option.BeforeTransfer != nil {
+		if err = c.option.BeforeTransfer(account, to, amount); err != nil {
 			return err
 		}
 	}
@@ -219,8 +223,8 @@ func (c *ERC20Contract) baseBurn(account common.Account, amount *common.SafeUint
 	//触发事件
 	c.sdk.EmitEvent("transfer", account.ToString(), to.ToString(), amount.ToString())
 	//触发用户自定义的afterTransfer
-	if option.AfterTransfer != nil {
-		return option.AfterTransfer(account, to, amount)
+	if c.option.AfterTransfer != nil {
+		return c.option.AfterTransfer(account, to, amount)
 	}
 	return nil
 }
